@@ -1,0 +1,42 @@
+plugins {
+    id 'application'
+    id 'java'
+}
+
+group = 'com.example.a'
+version = '0.1.0'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+application {
+    mainClass = 'com.example.a.App'
+}
+
+dependencies {
+    // CVE-2021-44228 (Log4Shell) — critical RCE
+    implementation 'org.apache.logging.log4j:log4j-core:2.14.1'
+    implementation 'org.apache.logging.log4j:log4j-api:2.14.1'
+
+    // CVE-2015-7501 / CVE-2017-15708 — unsafe deserialization RCE
+    implementation 'commons-collections:commons-collections:3.2.1'
+
+    // CVE-2019-12384 / CVE-2019-14540 — jackson-databind deserialization RCE
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.9.9'
+
+    // CVE-2022-25647 — Gson deserialization DoS
+    implementation 'com.google.code.gson:gson:2.8.6'
+
+    testImplementation 'junit:junit:4.12'
+}
+
+test {
+    useJUnit()
+}
