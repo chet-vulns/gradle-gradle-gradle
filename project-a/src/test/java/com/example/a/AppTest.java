@@ -5,7 +5,7 @@ import static org.junit.Assert.assertNotNull;
 
 public class AppTest {
     @Test
-    public void greetingIsNotNull() {
-        assertNotNull(new App().getGreeting());
+    public void hashIsNotNull() throws Exception {
+        assertNotNull(new App(null).hashPassword("x"));
     }
 }

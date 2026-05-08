@@ -21,20 +21,7 @@ application {
 }
 
 dependencies {
-    // CVE-2022-22965 (Spring4Shell) — RCE in spring-beans
-    implementation 'org.springframework:spring-webmvc:5.3.17'
-    implementation 'org.springframework:spring-beans:5.3.17'
-
-    // CVE-2022-1471 — SnakeYAML unsafe deserialization RCE
-    implementation 'org.yaml:snakeyaml:1.30'
-
-    // CVE-2022-42889 (Text4Shell) — RCE in commons-text
-    implementation 'org.apache.commons:commons-text:1.9'
-
-    // CVE-2020-13956 — Apache HttpClient URI handling
-    implementation 'org.apache.httpcomponents:httpclient:4.5.12'
-
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.8.2'
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
 }
 
 test {
