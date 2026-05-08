@@ -1,6 +1,9 @@
 package com.example.c;
 
-import java.io.ByteArrayInputStream;
+import jakarta.servlet.http.HttpServlet;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.Hashtable;
@@ -15,44 +18,47 @@ import javax.naming.directory.SearchControls;
 import javax.naming.directory.SearchResult;
 
 /**
- * Demo application for project-c.
+ * Demo servlet for project-c.
  *
  * NOTE: This class intentionally contains first-party security
  * vulnerabilities for SAST / code-scanning tool demonstrations.
  * Do not use any of this code in production.
  */
-public class App {
+public class App extends HttpServlet {
 
     // VULN 1: Hard-coded credentials (CWE-798)
-    // Secrets must never be embedded in source — they leak via VCS history,
-    // binaries, and crash dumps, and cannot be rotated without a rebuild.
+    // Pattern-based: secrets must never be embedded in source.
     private static final String DB_USER = "admin";
     private static final String DB_PASSWORD = "P@ssw0rd-prod-2024!";
     private static final String API_KEY = "sk_live_51HxYzABCDEF1234567890abcdefghij";
 
     /**
      * VULN 2: Deserialization of Untrusted Data (CWE-502)
-     * `ObjectInputStream.readObject` is called on attacker-controlled
-     * bytes, allowing arbitrary code execution via gadget chains.
+     * `ObjectInputStream.readObject` is called directly on the request
+     * body, allowing arbitrary code execution via gadget chains.
      */
-    public Object loadSession(byte[] sessionBytes) throws IOException, ClassNotFoundException {
-        try (ObjectInputStream ois = new ObjectInputStream(new ByteArrayInputStream(sessionBytes))) {
-            return ois.readObject();
+    public void loadSession(HttpServletRequest req, HttpServletResponse resp)
+            throws IOException, ClassNotFoundException {
+        try (ObjectInputStream ois = new ObjectInputStream(req.getInputStream())) {
+            Object session = ois.readObject();
+            resp.getWriter().println(session);
         }
     }
 
     /**
      * VULN 3: Insecure randomness for security-sensitive tokens (CWE-330, CWE-338)
      * `java.util.Random` is not cryptographically secure — its output is
-     * predictable, so attackers can forge password-reset / session tokens.
+     * predictable. The token is then sent back to the client as a
+     * password-reset / session identifier.
      */
-    public String generateResetToken() {
+    public void issueResetToken(HttpServletRequest req, HttpServletResponse resp) throws IOException {
         Random rng = new Random();
-        StringBuilder sb = new StringBuilder();
+        StringBuilder token = new StringBuilder();
         for (int i = 0; i < 16; i++) {
-            sb.append(Integer.toHexString(rng.nextInt(16)));
+            token.append(Integer.toHexString(rng.nextInt(16)));
         }
-        return sb.toString();
+        resp.addCookie(new jakarta.servlet.http.Cookie("reset_token", token.toString()));
+        resp.getWriter().println(token);
     }
 
     /**
@@ -60,10 +66,13 @@ public class App {
      * `username` is concatenated into the LDAP search filter without
      * escaping, so input like `*)(uid=*` returns every user.
      */
-    public String findLdapUser(String ldapUrl, String username) throws NamingException {
+    public void findLdapUser(HttpServletRequest req, HttpServletResponse resp)
+            throws NamingException, IOException {
+        String username = req.getParameter("username");
+
         Hashtable<String, String> env = new Hashtable<>();
         env.put(Context.INITIAL_CONTEXT_FACTORY, "com.sun.jndi.ldap.LdapCtxFactory");
-        env.put(Context.PROVIDER_URL, ldapUrl);
+        env.put(Context.PROVIDER_URL, "ldap://ldap.internal:389");
         env.put(Context.SECURITY_PRINCIPAL, "cn=" + DB_USER);
         env.put(Context.SECURITY_CREDENTIALS, DB_PASSWORD);
 
@@ -73,16 +82,10 @@ public class App {
 
         String filter = "(&(objectClass=person)(uid=" + username + "))";
         NamingEnumeration<SearchResult> results = ctx.search("ou=users", filter, controls);
-        StringBuilder out = new StringBuilder();
-        while (results.hasMore()) {
-            out.append(results.next().getNameInNamespace()).append("\n");
-        }
-        return out.toString();
-    }
 
-    public static void main(String[] args) {
-        App app = new App();
-        System.out.println("API key length: " + API_KEY.length());
-        System.out.println("Reset token: " + app.generateResetToken());
+        while (results.hasMore()) {
+            resp.getWriter().println(results.next().getNameInNamespace());
+        }
+        resp.getWriter().println("api_key_len=" + API_KEY.length());
     }
 }
