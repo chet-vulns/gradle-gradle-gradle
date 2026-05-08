@@ -1,0 +1,23 @@
+// Root settings file for the gradle-gradle-gradle monorepo.
+//
+// This file exists ONLY so that CodeQL (and other tools that walk the
+// repo from the root) recognize the working directory as a Gradle build.
+// It pulls each of the three subprojects in as INCLUDED BUILDS — each
+// one keeps its own Gradle wrapper pinned to a different Gradle version,
+// its own settings file, and its own dependency graph.
+//
+// There is intentionally NO root Gradle wrapper. Anyone wanting to build
+// a project must `cd` into it and run that project's own `./gradlew`.
+//
+// Side effect (intentional): because the three included builds pin
+// incompatible Gradle versions, attempting to run Gradle from the root
+// will fail. This is what reproduces the CodeQL warnings:
+//   - "Required Gradle version not specified"
+//   - "Failed to extract dependency information from build tool Gradle"
+//   - "Java analysis failed to extract a dependency graph from Gradle"
+
+rootProject.name = 'gradle-gradle-gradle'
+
+includeBuild 'project-a'
+includeBuild 'project-b'
+includeBuild 'project-c'

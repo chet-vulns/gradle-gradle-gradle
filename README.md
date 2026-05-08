@@ -20,7 +20,7 @@ from its own directory using its own `./gradlew`.
 | ---------------------- | ------ | ------ | ---------------------------------------------------------------------------------------------------------------------------- |
 | [project-a](project-a) | 7.6.4  | Groovy | SQL injection (CWE-89), OS command injection (CWE-78), path traversal (CWE-22), broken hash / MD5 password (CWE-327)         |
 | [project-b](project-b) | 8.5    | Groovy | Reflected XSS (CWE-79), SSRF (CWE-918), open redirect (CWE-601), XXE (CWE-611)                                               |
-| [project-c](project-c) | 8.10.2 | Kotlin | Hard-coded credentials (CWE-798), insecure deserialization (CWE-502), insecure randomness (CWE-330), LDAP injection (CWE-90) |
+| [project-c](project-c) | 8.10.2 | Groovy | Hard-coded credentials (CWE-798), insecure deserialization (CWE-502), insecure randomness (CWE-330), LDAP injection (CWE-90) |
 
 All third-party dependencies are pinned to current, **non-vulnerable**
 versions — every finding in this repo should originate from the project's
